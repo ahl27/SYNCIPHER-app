@@ -16,7 +16,7 @@ function(input, output, session){
   numSeqs <- reactive({
     f <- seqfile()
     fpath <- f$datapath
-    fname <- tools::file_path_sans_ext(f$name)
+    fname <- gsub('^([A-z0-9]*)\\..*', '\\1', f$name)
     Seqs2DB(fpath, 'FASTA', dbConn, fname, replaceTbl=TRUE)  
   })
   
@@ -47,13 +47,20 @@ function(input, output, session){
       showNotification("Aligning sequences...", type='warning')
       AliSet <<- AlignSeqs(SeqSet)
       BrowseSeqs(AliSet, 'www/alivis.html', FALSE)
-      output$alivis <- renderUI({
-        htmllines <- readLines('www/alivis.html')
-        # <pre> block starts at the 3rd entry and ends at end
-        for ( i in 4:length(htmllines) )
-          htmllines[i] <- paste0(htmllines[i], '<br>')
-        HTML(htmllines)
-      })
+      alivislines <- readLines('www/alivis.html')
+      # <pre> block starts at the 3rd entry and ends at end
+      for ( i in 4:length(alivislines) )
+        alivislines[i] <- paste0(alivislines[i], '<br>')
+      uielem <- fluidRow( id='alignFluidRow',
+                  box(
+                    width = 8, status = "info", solidHeader = TRUE,
+                    title = "Alignment",
+                    HTML(alivislines)
+                  )
+      )
+      insertUI(selector="#defaultFluidRow",
+               where='afterEnd',
+               ui=uielem)
       showNotification("Alignment completed!", type='message')
     })
   
@@ -75,7 +82,17 @@ function(input, output, session){
     req(!is.null(AliSet))
     showNotification("Building tree...", type='warning')
     tree <- TreeLine(AliSet, method='MP')
-    output$treevis <- renderPlot(plot(tree))
+    #output$treevis <- renderPlot(plot(tree))
+    uielem <- fluidRow( id='treeFluidRow',
+                        box(
+                          width = 8, status = "info", solidHeader = TRUE,
+                          title = "Alignment",
+                          renderPlot(plot(tree))
+                        )
+    )
+    insertUI(selector="#defaultFluidRow",
+             where='afterEnd',
+             ui=uielem)
     showNotification('Finished building tree!', type='message')
   })
 }
