@@ -58,6 +58,9 @@ function(input, output, session){
                     HTML(alivislines)
                   )
       )
+      if (input$alignseqs > 1){
+        removeUI(selector='#treeFluidRow')
+      }
       insertUI(selector="#defaultFluidRow",
                where='afterEnd',
                ui=uielem)
@@ -90,6 +93,9 @@ function(input, output, session){
                           renderPlot(plot(tree))
                         )
     )
+    if (input$findtree > 1){
+      removeUI(selector='#treeFluidRow')
+    }
     insertUI(selector="#defaultFluidRow",
              where='afterEnd',
              ui=uielem)
