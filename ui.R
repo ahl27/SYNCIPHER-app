@@ -10,12 +10,12 @@ dashboardPage(
       id='menusel',
       menuItem("Database", tabName = "db"),
       menuItem("Sequences", tabName = "seqs"),
-      actionButton('alignseqs', "Align Sequences", class='btn-success'),
       menuItem("Alignment", tabName = "ali"),
-      actionButton('findsyn', "Find Synteny", class='btn-warning'),
       menuItem("Synteny", tabName = "syn"),
-      actionButton('findtree', "Find Phylogeny", class='btn-danger'),
-      menuItem("Phylogeny", tabName = "phylo")
+      menuItem("Phylogeny", tabName = "phylo"),
+      actionButton('alignseqs', "Align Sequences", class='btn-success'),
+      actionButton('findsyn', "Find Synteny", class='btn-warning'),
+      actionButton('findtree', "Find Phylogeny", class='btn-danger')
     )
   ),
   dashboardBody(

@@ -58,13 +58,14 @@ function(input, output, session){
     })
   
   observeEvent(input$findsyn, {
+    showNotification("This doesn't work yet", type='error')
     if (is.null(SeqSet)){
       showNotification("No sequences loaded!", type='error')
     }
     req(!is.null(SeqSet))
     showNotification("Finding synteny...", type='warning')
-    syn <- FindSynteny(dbConn)
-    output$synvis <- renderPlot(plot(syn))
+    #syn <- FindSynteny(dbConn)
+    #output$synvis <- renderPlot(plot(syn))
     showNotification("Synteny completed!", type='message')
   })
   observeEvent(input$findtree, {
