@@ -2,10 +2,10 @@ library(DECIPHER)
 library(SynExtend)
 source('global.R')
 
-SeqSet <- NULL
-AliSet <- NULL
-DBPATH <- 'data/SeqsDB.sqlite'
-dbConn <- dbConnect(SQLite(), DBPATH)
+#SeqSet <- NULL
+#AliSet <- NULL
+
+TABLENAME <- '1111seqs'
 
 function(input, output, session){
   seqfile <- reactive({
@@ -17,88 +17,23 @@ function(input, output, session){
     f <- seqfile()
     fpath <- f$datapath
     fname <- gsub('^([A-z0-9]*)\\..*', '\\1', f$name)
-    Seqs2DB(fpath, 'FASTA', dbConn, fname, replaceTbl=TRUE)  
+    ids <- as.character(fasta.index(fpath)$recno)
+    Seqs2DB(seqs=fpath, type='FASTA', dbFile=dbConn, 
+            identifier=ids, replaceTbl=TRUE)  
   })
   
   observeEvent(numSeqs(), {
-    SeqSet <<- SearchDB(dbConn)
-    BrowseSeqs(SeqSet, 'www/seqvis.html', openURL=FALSE)
-    BrowseDB(dbConn, 'www/dbvis.html', openURL=FALSE)
-    output$dbvis <- renderUI({
-      req(!is.null(SeqSet))
-      HTML(readLines('www/dbvis.html'))
-    })
-    output$seqvis <- renderUI({
-      req(!is.null(SeqSet))
-      htmllines <- readLines('www/seqvis.html')
-      # <pre> block starts at the 3rd entry and ends at end
-      for ( i in 4:length(htmllines) )
-        htmllines[i] <- paste0(htmllines[i], '<br>')
-      HTML(htmllines)
-    })
-  })
-  
-  observeEvent(input$alignseqs, {
-      if (is.null(SeqSet)){
-        showNotification("No sequences loaded.", type='warning')
-      }
-      req(!is.null(SeqSet))
-      req(max(width(SeqSet)) < MAX_WIDTH_SEQS)
-      showNotification("Aligning sequences...", type='warning')
-      AliSet <<- AlignSeqs(SeqSet)
-      BrowseSeqs(AliSet, 'www/alivis.html', FALSE)
-      alivislines <- readLines('www/alivis.html')
-      # <pre> block starts at the 3rd entry and ends at end
-      for ( i in 4:length(alivislines) )
-        alivislines[i] <- paste0(alivislines[i], '<br>')
-      uielem <- fluidRow( id='alignFluidRow',
-                  box(
-                    width = 8, status = "info", solidHeader = TRUE,
-                    title = "Alignment",
-                    HTML(alivislines)
-                  )
-      )
-      if (input$alignseqs > 1){
-        removeUI(selector='#treeFluidRow')
-      }
-      insertUI(selector="#defaultFluidRow",
-               where='afterEnd',
-               ui=uielem)
-      showNotification("Alignment completed!", type='message')
+    x <- seqsHTMLGen(output)
+    output$seqvis <- x$seqvis
+    output$dbvis <- x$dbvis
     })
   
-  observeEvent(input$findsyn, {
-    showNotification("This doesn't work yet", type='error')
-    if (is.null(SeqSet)){
-      showNotification("No sequences loaded!", type='error')
-    }
-    req(!is.null(SeqSet))
-    showNotification("Finding synteny...", type='warning')
-    #syn <- FindSynteny(dbConn)
-    #output$synvis <- renderPlot(plot(syn))
-    showNotification("Synteny completed!", type='message')
-  })
-  observeEvent(input$findtree, {
-    if (is.null(AliSet)){
-      showNotification('Sequences are not aligned!', type='warning')
-    }
-    req(!is.null(AliSet))
-    showNotification("Building tree...", type='warning')
-    tree <- TreeLine(AliSet, method='MP')
-    #output$treevis <- renderPlot(plot(tree))
-    uielem <- fluidRow( id='treeFluidRow',
-                        box(
-                          width = 8, status = "info", solidHeader = TRUE,
-                          title = "Alignment",
-                          renderPlot(plot(tree))
-                        )
-    )
-    if (input$findtree > 1){
-      removeUI(selector='#treeFluidRow')
-    }
-    insertUI(selector="#defaultFluidRow",
-             where='afterEnd',
-             ui=uielem)
-    showNotification('Finished building tree!', type='message')
-  })
+  ## Alignment
+  observeEvent(input$alignseqs, addAliElem(input))
+  
+  ## Find Synteny
+  observeEvent(input$findsyn, addSynElem(input))
+  
+  ## Build Phylogenies
+  observeEvent(input$findtree, addTreeElem(input))
 }

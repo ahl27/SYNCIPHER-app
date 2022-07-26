@@ -1,17 +1,22 @@
 dashboardPage(
   dashboardHeader(title = "SynCIPHER"),
   dashboardSidebar(
+    tags$style(HTML("
+      .main-sidebar{
+        position:fixed;
+      }
+    ")),
     fileInput(inputId='SeqsUpload',
               label='Choose Sequences',
               multiple=FALSE
 #              accept=VALID_EXTENSIONS
     ),
-    sidebarMenu(
-      id='menusel',
-      actionButton('alignseqs', "Align Sequences", class='btn-success'),
-      actionButton('findsyn', "Find Synteny", class='btn-warning'),
-      actionButton('findtree', "Find Phylogeny", class='btn-danger')
-    )
+    actionButton('alignseqs', "Align Sequences", 
+                 class='btn-success', style='width:90%'),
+    actionButton('findsyn', "Find Synteny", 
+                 class='btn-warning', style='width:90%'),
+    actionButton('findtree', "Find Phylogeny", 
+                 class='btn-danger', style='width:90%')
   ),
   dashboardBody(
     fluidRow( id='defaultFluidRow',
